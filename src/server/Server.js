@@ -27,36 +27,12 @@ function normalizePort(val) {
     return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error, bind) {
-    if (error.syscall !== 'listen') {
-        throw error;
-    }
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-        case 'EACCES':
-            console.error(`${bind} requires elevated privileges`);
-            process.exit(1);
-            break;
-        case 'EADDRINUSE':
-            console.error(`${bind} is already in use`);
-            process.exit(1);
-            break;
-        default:
-            throw error;
-    }
-}
-
 function master() {
     // Count the machine's CPUs
     const cpuCount = require('os').cpus().length;
 
     // Create a worker for each CPU
-    for (let i = 0; i < cpuCount; i += 1) {
+    for (let i = 0; i < cpuCount; ++i) {
         Cluster.fork();
     }
 }
@@ -100,13 +76,25 @@ function worker(config) {
     // TODO: make this configurable
     //var io = SocketIO(server);
 
-    server.listen(port);
+    server.listen(port, err => {
+        if (err) {
+            // handle specific listen errors with friendly messages
+            switch (err.code) {
+                case 'EACCES':
+                    console.error(`Port ${port} requires elevated privileges`);
+                    process.exit(1);
+                    break;
+                case 'EADDRINUSE':
+                    console.error(`Port ${port} is already in use`);
+                    process.exit(1);
+                    break;
+                default:
+                    throw err;
+            }
+        }
 
-    const address = server.address();
-    const bind = _.isString(address) ? `Pipe ${address}` : `port ${address.port}`;
-
-    server.on('error', (error) => onError(error, bind));
-    server.on('listening', () => {
+        const address = server.address();
+        const bind = _.isString(address) ? `Pipe ${address}` : `port ${address.port}`;
         console.log(`Server Listening on: ${bind}`);
     });
 

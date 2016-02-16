@@ -9,7 +9,7 @@ import performanceNow from 'performance-now';
 
 const ApiPathPrefix = 'api';
 
-function printRoutes(routes) {
+const printRoutes = _.once(routes => {
     const table = new Table({head: ['', 'Name', 'Path']});
 
     for (const key in routes) {
@@ -26,7 +26,7 @@ function printRoutes(routes) {
 
     console.log('API Routes :');
     console.log(table.toString());
-}
+});
 
 function wrap(req, res, api, apiObj) {
     const startTime = performanceNow();
@@ -63,7 +63,10 @@ function buildRoute(api, key, value, router) {
     });
 }
 
-function buildRoutes(api, router) {
+function buildRoutes(apiOrBuilder, router) {
+    // if it's a builder function, build it...
+    const api = _.isFunction(apiOrBuilder) ? apiOrBuilder() : apiOrBuilder;
+
     _.forEach(api.registry(), (value, key) => {
         if (_.isArray(value)) {
             _.forEach(value, (item) => buildRoute(api, key, item, router));
