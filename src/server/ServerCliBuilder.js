@@ -7,7 +7,7 @@ import server from './Server';
 export default function (config, name, description) {
     new Command(name || 'server')
       .description(description || 'Runs server')
-      .option(`-p, --port [PORT]`, `Sets server port`)
+      .option('-p, --port [PORT]', 'Sets server port')
       .action(args => {
             if (args.port) {
                 process.env.PORT = args.port;

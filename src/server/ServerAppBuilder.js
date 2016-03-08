@@ -8,7 +8,14 @@ import ms from 'ms';
 
 const NinetyDays = ms('90 days');
 
-import clientAppRequestHandler from './ClientAppRequestHandler';
+let clientAppRequestHandler = null;
+
+try {
+    clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
+} catch (error) {
+    console.warn('Error in requiring ClientAppRequestHandler: ', error);
+}
+
 import apiRequestHandler from './ApiRequestHandler';
 
 //
@@ -55,14 +62,14 @@ export default function (app, config) {
     // APIs
     //
     if (config.api) {
-        app.use('/', apiRequestHandler(config.api.services));
+        apiRequestHandler(app, config.api);
     }
 
     //
     // CLIENT APP
     //
     if (config.client) {
-        app.use(clientAppRequestHandler(config.client.routes, config.client.properties, !!config.api ? config.api.services : undefined));
+        app.use(config.client.multiInstance ? '/:instanceName/' : '/', clientAppRequestHandler(config.client.routes, config.client.properties, config.api));
     }
 
     // catch 404 and forward to error handler

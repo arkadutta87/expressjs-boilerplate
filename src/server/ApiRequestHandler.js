@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import express from 'express';
 import Promise from 'bluebird';
-import Table from 'cli-table2';
+
+//import Table from 'cli-table2';
 import URL from 'url';
 import QueryString from 'qs';
 
@@ -9,24 +10,24 @@ import performanceNow from 'performance-now';
 
 const ApiPathPrefix = 'api';
 
-const printRoutes = _.once(routes => {
-    const table = new Table({head: ['', 'Name', 'Path']});
-
-    for (const key in routes) {
-        if (routes.hasOwnProperty(key)) {
-            let val = routes[key];
-            if (val.route) {
-                val = val.route;
-                table.push({
-                    [val.stack[0].method]: [val.path, val.path]
-                });
-            }
-        }
-    }
-
-    console.log('API Routes :');
-    console.log(table.toString());
-});
+//const printRoutes = _.once(routes => {
+//    const table = new Table({head: ['', 'Name', 'Path']});
+//
+//    for (const key in routes) {
+//        if (routes.hasOwnProperty(key)) {
+//            let val = routes[key];
+//            if (val.route) {
+//                val = val.route;
+//                table.push({
+//                    [val.stack[0].method]: [val.path, val.path]
+//                });
+//            }
+//        }
+//    }
+//
+//    console.log('API Routes :');
+//    console.log(table.toString());
+//});
 
 function wrap(req, res, api, apiObj) {
     const startTime = performanceNow();
@@ -54,7 +55,7 @@ function wrap(req, res, api, apiObj) {
       });
 }
 
-function buildRoute(api, key, value, router, pathPrefix) {
+function buildRoute(app, api, key, value, pathPrefix) {
     let path = null;
 
     if (pathPrefix) {
@@ -65,18 +66,22 @@ function buildRoute(api, key, value, router, pathPrefix) {
 
     const method = _.lowerCase(value.method) || 'post';
 
-    router[method](path, (req, res) => {
+    app[method](path, (req, res) => {
         wrap(req, res, value.handler, api);
     });
+
+    // emit event here
 }
 
-function buildRoutes(apiOrBuilder, router) {
+function buildRoutes(app, apiOrBuilder) {
     // if it's a builder function, build it...
     let pathPrefix = null;
     let api = null;
+    let registry = null;
     if (_.isObject(apiOrBuilder)) {
         pathPrefix = apiOrBuilder.path;
         api = apiOrBuilder.api;
+        registry = apiOrBuilder.registry;
     } else {
         api = apiOrBuilder;
     }
@@ -85,21 +90,39 @@ function buildRoutes(apiOrBuilder, router) {
         api = api();
     }
 
-    _.forEach(api.registry(), (value, key) => {
+    if (!registry && _.isFunction(api.registry)) {
+        registry = api.registry();
+    }
+
+    if (!registry) {
+        // print errors here
+        return;
+    }
+
+    _.forEach(registry, (value, key) => {
         if (_.isArray(value)) {
-            _.forEach(value, (item) => buildRoute(api, key, item, router, pathPrefix));
+            _.forEach(value, (item) => buildRoute(app, api, key, item, pathPrefix));
         } else {
-            buildRoute(api, key, value, router, pathPrefix);
+            buildRoute(app, api, key, value, pathPrefix);
         }
     });
 }
 
-export default (apiOrApiArray) => {
-    const router = express.Router();
+//function registerApi(app, api) {
+//
+//}
+//
+//function unRegisterApi(app, api) {
+//
+//}
 
-    _.forEach(_.isArray(apiOrApiArray) ? apiOrApiArray : [apiOrApiArray], api => buildRoutes(api, router));
+export default (app, config) => {
+    //if (config && config.watch) {
+    //
+    //}
 
-    printRoutes(router.stack);
-
-    return router;
+    const apiOrApiArray = config.services;
+    if (apiOrApiArray) {
+        _.forEach(_.isArray(apiOrApiArray) ? apiOrApiArray : [apiOrApiArray], api => buildRoutes(app, api));
+    }
 };
