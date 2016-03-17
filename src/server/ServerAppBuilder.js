@@ -69,7 +69,7 @@ export default function (app, config) {
     // CLIENT APP
     //
     if (config.client) {
-        app.use(config.client.multiInstance ? '/:instanceName/' : '/', clientAppRequestHandler(config.client.routes, config.client.properties, config.api));
+        app.use(clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
     }
 
     // catch 404 and forward to error handler

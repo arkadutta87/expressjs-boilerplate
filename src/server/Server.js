@@ -1,6 +1,5 @@
 import Http from 'http';
 import Cluster from 'cluster';
-import EnvConfig from 'config';
 import _ from 'lodash';
 import express from 'express';
 
@@ -62,12 +61,7 @@ function worker(config) {
 
     buildServerApp(app, config);
 
-    let port = null;
-    if (EnvConfig.has('PORT')) {
-        port = normalizePort(EnvConfig.get('PORT'));
-    } else {
-        port = 3000; // default value
-    }
+    const port = normalizePort(config.port || '3000');
 
     app.set('port', port);
 
@@ -104,7 +98,7 @@ function worker(config) {
 }
 
 export default function (config) {
-    if (EnvConfig.util.getEnv('NODE_ENV') !== 'production' && EnvConfig.util.getEnv('NODE_ENV') !== 'staging') {
+    if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging') {
         worker(config);
     } else {
         if (Cluster.isMaster) {
