@@ -3,7 +3,7 @@
   "version": "1.0.9",
   "description": "Boilerplate for expressjs based application",
   "private": true,
-  "repository": "git+ssh://git-codecommit.us-east-1.amazonaws.com/v1/repos/expressjs-boilerplate",
+  "repository": "git@github.com:360fy/expressjs-boilerplate.git",
   "scripts": {
     "lint": "eslint ./src/",
     "clean": "rm -rf lib/",
