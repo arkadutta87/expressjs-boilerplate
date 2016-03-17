@@ -15,12 +15,11 @@
   "dependencies": {
     "bluebird": "^3.3.4",
     "body-parser": "~1.15.0",
-    "cli-boilerplate": "https://private-npm-releases.s3.amazonaws.com/cli-boilerplate-1.0.2.tgz",
     "cli-table2": "^0.2.0",
+    "command-line-boilerplate": "^1.0.2",
     "compression": "^1.6.1",
     "cookie-parser": "^1.4.1",
     "debug": "~2.2.0",
-    "eslint-config-360fy": "https://private-npm-releases.s3.amazonaws.com/eslint-config-360fy-1.0.1.tgz",
     "events": "^1.1.0",
     "express": "~4.13.4",
     "immutable": "^3.7.6",
@@ -43,7 +42,7 @@
     "babel-preset-node5": "^11.0.0",
     "babel-preset-react": "^6.5.0",
     "eslint": "^2.4.0",
-    "eslint-config-360fy": "https://private-npm-releases.s3.amazonaws.com/eslint-config-360fy-1.0.1.tgz",
+    "eslint-config-360fy": "^1.0.1",
     "eslint-plugin-react": "^4.2.3"
   },
   "eslintConfig": {
