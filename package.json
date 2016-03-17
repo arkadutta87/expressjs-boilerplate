@@ -2,7 +2,6 @@
   "name": "expressjs-boilerplate",
   "version": "1.0.9",
   "description": "Boilerplate for expressjs based application",
-  "private": true,
   "repository": "git@github.com:360fy/expressjs-boilerplate.git",
   "scripts": {
     "lint": "eslint ./src/",
