@@ -40,7 +40,14 @@ function wrap(req, res, api, apiObj) {
 
     const data = _.extend({}, req.body, queryObject, req.params);
 
-    return Promise.resolve(api.call(apiObj, req, data))
+    let promise = null;
+    try {
+        promise = api.call(apiObj, req, data);
+    } catch (error) {
+        promise = Promise.reject(error);
+    }
+
+    return Promise.resolve(promise)
       .then((result) => {
           if (result) {
               result.requestTime = req.body.requestTime;

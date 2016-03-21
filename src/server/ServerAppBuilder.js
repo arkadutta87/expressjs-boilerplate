@@ -72,6 +72,7 @@ export default function (app, config) {
         app.use(clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
     }
 
+    // TODO: depending on the user agent either return REST response or page response here
     // catch 404 and forward to error handler
     app.use((req, res, next) => {
         const err = new Error('404::Not Found');
@@ -83,6 +84,7 @@ export default function (app, config) {
     // ERROR HANDLERS
     //
 
+    // TODO: depending on the user agent either return REST response or page response here
     // development error handler - will print stacktrace
     if (app.get('env') === 'development') {
         app.use((err, req, res) => {
@@ -94,6 +96,7 @@ export default function (app, config) {
         });
     }
 
+    // TODO: depending on the user agent either return REST response or page response here
     // production error handler- no stack traces leaked to user
     app.use((err, req, res) => {
         res.status(err.status || 500);
