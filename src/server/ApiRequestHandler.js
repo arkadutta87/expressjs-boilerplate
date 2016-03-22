@@ -1,15 +1,12 @@
 import _ from 'lodash';
-import express from 'express';
 import Promise from 'bluebird';
-
-//import Table from 'cli-table2';
 import URL from 'url';
 import QueryString from 'qs';
-
 import performanceNow from 'performance-now';
 
 const ApiPathPrefix = 'api';
 
+//import Table from 'cli-table2';
 //const printRoutes = _.once(routes => {
 //    const table = new Table({head: ['', 'Name', 'Path']});
 //
@@ -57,7 +54,16 @@ function wrap(req, res, api, apiObj) {
           return res.json(result);
       })
       .catch((error) => {
-          console.error('post:Error: ', error, error && error.stack);
+          if (error && _.isObject(error)) {
+              error._errorId = Date.now();
+
+              console.error(JSON.stringify(error));
+
+              return res.status(error._status ? error._status : 500).json(error.name === 'InternalServiceError' ? _.omit(error, 'details') : error);
+          }
+
+          console.error(error);
+
           return res.status(500).json(error);
       });
 }
