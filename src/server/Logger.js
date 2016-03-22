@@ -7,6 +7,7 @@ export default (logDirectory) => {
     const logger = new Winston.Logger({
         transports: [
             new Winston.transports.File({
+                name: 'access_all',
                 level: 'info',
                 filename: Path.join(logDirectory, 'access_all.log'),
                 handleExceptions: true,
@@ -15,6 +16,7 @@ export default (logDirectory) => {
             }),
 
             new Winston.transports.File({
+                name: 'access_error',
                 level: 'error',
                 filename: Path.join(logDirectory, 'access_error.log'),
                 handleExceptions: true,
@@ -23,7 +25,7 @@ export default (logDirectory) => {
             }),
 
             new Winston.transports.Console({
-                level: 'debug',
+                level: 'true',
                 handleExceptions: true,
                 json: false,
                 colorize: true
@@ -44,12 +46,14 @@ export default (logDirectory) => {
         }
     });
 
-    return {
-        logger,
-        stream: {
-            write: (message, encoding) => {
-                logger.info(message);
-            }
-        }
-    };
+    // return {
+    //     logger,
+    //     stream: {
+    //         write: (message, encoding) => {
+    //             logger.info(message);
+    //         }
+    //     }
+    // };
+    
+    return logger;
 };

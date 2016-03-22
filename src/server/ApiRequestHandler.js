@@ -61,14 +61,10 @@ function wrap(req, res, api, apiObj) {
           if (error && _.isObject(error)) {
               error._errorId = Date.now();
 
-              // console.error(JSON.stringify(error));
-
-              apiErrorsLogger.error(error);
+              apiErrorsLogger.error(_.omit(error, 'stack'));
 
               return res.status(error._status ? error._status : 500).json(error.name === 'InternalServiceError' ? _.omit(error, 'details') : error);
           }
-
-          // console.error(error);
 
           apiErrorsLogger.error(error);
 
