@@ -26,7 +26,7 @@ export default (logDirectory) => {
 
             new Winston.transports.Console({
                 name: 'console',
-                level: 'trace',
+                level: 'debug',
                 handleExceptions: true,
                 json: false,
                 colorize: true
