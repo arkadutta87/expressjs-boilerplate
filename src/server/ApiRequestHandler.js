@@ -4,6 +4,10 @@ import URL from 'url';
 import QueryString from 'qs';
 import performanceNow from 'performance-now';
 
+import Winston from 'winston';
+
+const apiErrorsLogger = Winston.loggers.get('API_ERRORS');
+
 const ApiPathPrefix = 'api';
 
 //import Table from 'cli-table2';
@@ -57,12 +61,16 @@ function wrap(req, res, api, apiObj) {
           if (error && _.isObject(error)) {
               error._errorId = Date.now();
 
-              console.error(JSON.stringify(error));
+              // console.error(JSON.stringify(error));
+
+              apiErrorsLogger.error(error);
 
               return res.status(error._status ? error._status : 500).json(error.name === 'InternalServiceError' ? _.omit(error, 'details') : error);
           }
 
-          console.error(error);
+          // console.error(error);
+
+          apiErrorsLogger.error(error);
 
           return res.status(500).json(error);
       });

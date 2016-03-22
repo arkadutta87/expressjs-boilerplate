@@ -1,22 +1,13 @@
 import express from 'express';
 import path from 'path';
-import logger from 'morgan';
+import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import bodyParser from 'body-parser';
 import ms from 'ms';
+import buildLogger from './Logger';
 
 const NinetyDays = ms('90 days');
-
-let clientAppRequestHandler = null;
-
-try {
-    clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
-} catch (error) {
-    console.warn('Error in requiring ClientAppRequestHandler: ', error);
-}
-
-import apiRequestHandler from './ApiRequestHandler';
 
 //
 // config
@@ -29,7 +20,11 @@ import apiRequestHandler from './ApiRequestHandler';
 //          services - service instances, that also implement registry methods
 //
 export default function (app, config) {
+    const logger = buildLogger(config.logDirectory || process.cwd());
+
     app.use(compression());
+
+    app.use(morgan({stream: logger.stream}));
 
     if (config.client) {
         // view engine setup
@@ -53,7 +48,6 @@ export default function (app, config) {
         next();
     });
 
-    app.use(logger('dev'));
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: false}));
     app.use(cookieParser());
@@ -62,13 +56,14 @@ export default function (app, config) {
     // APIs
     //
     if (config.api) {
-        apiRequestHandler(app, config.api);
+        require('./ApiRequestHandler').default(app, config.api);
     }
 
     //
     // CLIENT APP
     //
     if (config.client) {
+        const clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
         app.use(clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
     }
 
