@@ -90,6 +90,7 @@ function buildRoute(app, api, key, value, pathPrefix) {
     // emit event here
 }
 
+// should build a catch all route for pathPrefix ??
 function buildRoutes(app, apiOrBuilder) {
     // if it's a builder function, build it...
     let pathPrefix = null;

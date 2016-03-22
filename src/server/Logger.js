@@ -25,7 +25,8 @@ export default (logDirectory) => {
             }),
 
             new Winston.transports.Console({
-                level: 'true',
+                name: 'console',
+                level: 'trace',
                 handleExceptions: true,
                 json: false,
                 colorize: true
@@ -46,14 +47,5 @@ export default (logDirectory) => {
         }
     });
 
-    // return {
-    //     logger,
-    //     stream: {
-    //         write: (message, encoding) => {
-    //             logger.info(message);
-    //         }
-    //     }
-    // };
-    
     return logger;
 };
