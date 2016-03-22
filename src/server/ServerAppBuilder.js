@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import bodyParser from 'body-parser';
