@@ -1,6 +1,6 @@
 {
   "name": "expressjs-boilerplate",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Boilerplate for expressjs based application",
   "repository": "git@github.com:360fy/expressjs-boilerplate.git",
   "scripts": {
