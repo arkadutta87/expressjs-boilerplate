@@ -63,7 +63,7 @@ function wrap(req, res, api, apiObj) {
 
               apiErrorsLogger.error(_.omit(error, 'stack'));
 
-              return res.status(error._status ? error._status : 500).json(error.name === 'InternalServiceError' ? _.omit(error, 'details') : error);
+              return res.status(error._statusCode || 500).json(error._errorCode === 'INTERNAL_SERVICE_ERROR' ? _.omit(error, 'details') : error);
           }
 
           apiErrorsLogger.error(error);
