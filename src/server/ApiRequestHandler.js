@@ -59,13 +59,19 @@ function wrap(req, res, api, apiObj) {
       })
       .catch((error) => {
           if (error && _.isObject(error)) {
+              // TODO: change it
+              /* eslint-disable no-underscore-dangle */
               error._errorId = Date.now();
 
               apiErrorsLogger.error(_.omit(error, 'stack'));
 
               return res.status(error._statusCode || 500).json(error._errorCode === 'INTERNAL_SERVICE_ERROR' ? _.omit(error, 'details') : error);
+              /* eslint-enable no-underscore-dangle */
           }
 
+          // log error stack here
+          console.error('Error in handling request for data: ', JSON.stringify(data), req.originalUrl, error, error.stack);
+          
           apiErrorsLogger.error(error);
 
           return res.status(500).json(error);

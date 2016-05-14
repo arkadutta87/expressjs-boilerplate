@@ -25,6 +25,9 @@ export default function (app, config) {
 
     app.use(compression());
 
+    // log body too
+    ExpressWinston.requestWhitelist.push('body');
+
     app.use(ExpressWinston.logger({winstonInstance: logger, statusLevels: true}));
 
     if (config.client) {
@@ -57,14 +60,19 @@ export default function (app, config) {
     // APIs
     //
     if (config.api) {
+        /* eslint-disable global-require, import/no-unresolved */
         require('./ApiRequestHandler').default(app, config.api);
+        /* eslint-enable global-require */
     }
 
     //
     // CLIENT APP
     //
     if (config.client) {
+        /* eslint-disable global-require */
         const clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
+        /* eslint-enable global-require */
+
         app.use(clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
     }
 

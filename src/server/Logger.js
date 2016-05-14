@@ -20,6 +20,8 @@ export default (logDirectory) => {
                 level: 'error',
                 filename: Path.join(logDirectory, 'access_error.log'),
                 handleExceptions: true,
+                dumpExceptions: true,
+                showStack: true,
                 json: true,
                 colorize: false
             }),
