@@ -45,6 +45,8 @@ function wrap(req, res, api, apiObj) {
     try {
         promise = api.call(apiObj, req, data);
     } catch (error) {
+        console.error('Error in handling request for data: ', JSON.stringify(data), req.originalUrl, error, error.stack);
+        apiErrorsLogger.error(error);
         promise = Promise.reject(error);
     }
 
