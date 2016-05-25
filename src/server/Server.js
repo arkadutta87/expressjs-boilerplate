@@ -28,9 +28,7 @@ function normalizePort(val) {
 
 function master() {
     // Count the machine's CPUs
-    /* eslint-disable global-require */
     const cpuCount = require('os').cpus().length;
-    /* eslint-enable global-require */
 
     // Create a worker for each CPU
     for (let i = 0; i < cpuCount; ++i) {
