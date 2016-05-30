@@ -1,11 +1,11 @@
 import express from 'express';
+import expressHandleBars from 'express-handlebars';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import bodyParser from 'body-parser';
 import ms from 'ms';
 import ExpressWinston from 'express-winston';
-
 import buildLogger from './Logger';
 
 const NinetyDays = ms('90 days');
@@ -32,15 +32,24 @@ export default function (app, config) {
 
     if (config.client) {
         // view engine setup
-        app.set('views', config.client.views || path.join(__dirname, 'views'));
-        app.set('view engine', 'jade');
+        const viewsDirectory = config.client.views || path.join(__dirname, 'views');
+        const layoutsDirectory = path.join(viewsDirectory, 'layouts');
+
+        const hbsEngine = expressHandleBars.create({
+            layoutsDir: layoutsDirectory,
+            defaultLayout: 'default'
+        });
+
+        app.set('views', viewsDirectory);
+        app.engine('handlebars', hbsEngine.engine);
+        app.set('view engine', 'handlebars');
 
         if (config.client.publicPath) {
-            app.use('/', express.static(config.client.publicPath, {index: false, maxAge: NinetyDays}));
+            app.use('/:instanceName', express.static(config.client.publicPath, {index: false, maxAge: NinetyDays}));
         }
 
         if (config.client.resourcesPath) {
-            app.use('/resources', express.static(config.client.resourcesPath, {index: false, maxAge: NinetyDays}));
+            app.use('/:instanceName/resources', express.static(config.client.resourcesPath, {index: false, maxAge: NinetyDays}));
         }
     }
 
@@ -73,6 +82,14 @@ export default function (app, config) {
         const clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
 
         app.use(clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
+
+        // if (config.client.publicPath) {
+        //     app.get('/:instanceName', express.static(config.client.publicPath, {index: false, maxAge: NinetyDays}));
+        // }
+        //
+        // if (config.client.resourcesPath) {
+        //     app.get('/:instanceName/resources', express.static(config.client.resourcesPath, {index: false, maxAge: NinetyDays}));
+        // }
     }
 
     // TODO: depending on the user agent either return REST response or page response here
