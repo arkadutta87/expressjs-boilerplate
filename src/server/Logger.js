@@ -1,4 +1,5 @@
 import Winston from 'winston';
+import WinstonDailyRotateFile from 'winston-daily-rotate-file';
 import Path from 'path';
 
 export default (logDirectory) => {
@@ -6,7 +7,7 @@ export default (logDirectory) => {
 
     const logger = new Winston.Logger({
         transports: [
-            new Winston.transports.File({
+            new WinstonDailyRotateFile({
                 name: 'access_all',
                 level: 'info',
                 filename: Path.join(logDirectory, 'access_all.log'),
@@ -15,7 +16,7 @@ export default (logDirectory) => {
                 colorize: false
             }),
 
-            new Winston.transports.File({
+            new WinstonDailyRotateFile({
                 name: 'access_error',
                 level: 'error',
                 filename: Path.join(logDirectory, 'access_error.log'),
