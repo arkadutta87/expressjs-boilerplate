@@ -1,5 +1,11 @@
 <div id="__flux_stores_root__">{{{fluxStoreContent}}}</div>
 <div id="__page_root__" class="page-root">{{{pageContent}}}</div>
-<script type="text/javascript" src="/{{params.instanceName}}/resources/app.js">
-    <!-- app javascript -->
-</script>
+{{#if properties.resourcesPrefix}}
+    <script type="text/javascript" src="/{{properties.resourcesPrefix}}/resources/app.js">
+        <!-- app javascript -->
+    </script>
+{{else}}
+    <script type="text/javascript" src="/resources/app.js">
+        <!-- app javascript -->
+    </script>
+{{/if}}
