@@ -45,11 +45,11 @@ export default function (app, config) {
         app.set('view engine', 'handlebars');
 
         if (config.client.publicPath) {
-            app.use('/:instanceName', express.static(config.client.publicPath, {index: false, maxAge: NinetyDays}));
+            app.use(config.client.multiInstance ? '/:instanceName' : '/', express.static(config.client.publicPath, {index: false, maxAge: NinetyDays}));
         }
 
         if (config.client.resourcesPath) {
-            app.use('/:instanceName/resources', express.static(config.client.resourcesPath, {index: false, maxAge: NinetyDays}));
+            app.use(config.client.multiInstance ? '/:instanceName/resources' : '/resources', express.static(config.client.resourcesPath, {index: false, maxAge: NinetyDays}));
         }
     }
 
@@ -81,7 +81,7 @@ export default function (app, config) {
     if (config.client) {
         const clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
 
-        app.use(clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
+        app.use(config.client.multiInstance ? '/:instanceName' : '/', clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
 
         // if (config.client.publicPath) {
         //     app.get('/:instanceName', express.static(config.client.publicPath, {index: false, maxAge: NinetyDays}));
