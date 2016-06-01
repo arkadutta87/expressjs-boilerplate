@@ -10,6 +10,8 @@ import buildLogger from './Logger';
 
 const NinetyDays = ms('90 days');
 
+import apiRequestHandler from './ApiRequestHandler';
+
 //
 // config
 //      client
@@ -26,6 +28,8 @@ export default function (app, config) {
     app.use(compression());
 
     // log body too
+    ExpressWinston.requestWhitelist.push('params');
+    ExpressWinston.requestWhitelist.push('cookies');
     ExpressWinston.requestWhitelist.push('body');
 
     app.use(ExpressWinston.logger({winstonInstance: logger, statusLevels: true}));
@@ -71,25 +75,18 @@ export default function (app, config) {
     // APIs
     //
     if (config.api) {
-        /* eslint-disable import/no-unresolved */
-        require('./ApiRequestHandler').default(app, config.api);
+        app.use(config.client.multiInstance ? '/:instanceName' : '/', apiRequestHandler(config.api));
     }
 
     //
     // CLIENT APP
     //
     if (config.client) {
+        /* eslint-disable import/no-unresolved */
         const clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
+        /* eslint-enable */
 
         app.use(config.client.multiInstance ? '/:instanceName' : '/', clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
-
-        // if (config.client.publicPath) {
-        //     app.get('/:instanceName', express.static(config.client.publicPath, {index: false, maxAge: NinetyDays}));
-        // }
-        //
-        // if (config.client.resourcesPath) {
-        //     app.get('/:instanceName/resources', express.static(config.client.resourcesPath, {index: false, maxAge: NinetyDays}));
-        // }
     }
 
     // TODO: depending on the user agent either return REST response or page response here
@@ -111,10 +108,11 @@ export default function (app, config) {
     if (app.get('env') === 'development') {
         app.use((err, req, res) => {
             res.status(err.status || 500);
-            res.render('error', {
-                message: err.message,
-                error: err
-            });
+            // res.render('error', {
+            //     message: err.message,
+            //     error: err
+            // });
+            res.send({message: err.message, status: err.status, error: err});
         });
     }
 
@@ -122,9 +120,10 @@ export default function (app, config) {
     // production error handler- no stack traces leaked to user
     app.use((err, req, res) => {
         res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: {}
-        });
+        // res.render('error', {
+        //     message: err.message,
+        //     error: {}
+        // });
+        res.send({message: err.message, status: err.status});
     });
 }

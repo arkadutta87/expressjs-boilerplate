@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import express from 'express';
 import Promise from 'bluebird';
 import URL from 'url';
 import QueryString from 'qs';
@@ -78,7 +79,7 @@ function wrap(req, res, api, apiObj) {
       });
 }
 
-function buildRoute(app, api, key, value, pathPrefix) {
+function buildRoute(router, api, key, value, pathPrefix) {
     let path = null;
 
     if (pathPrefix) {
@@ -89,7 +90,7 @@ function buildRoute(app, api, key, value, pathPrefix) {
 
     const method = _.lowerCase(value.method) || 'post';
 
-    app[method](path, (req, res) => {
+    router[method](path, (req, res) => {
         wrap(req, res, value.handler, api);
     });
 
@@ -97,7 +98,7 @@ function buildRoute(app, api, key, value, pathPrefix) {
 }
 
 // should build a catch all route for pathPrefix ??
-function buildRoutes(app, apiOrBuilder) {
+function buildRoutes(router, apiOrBuilder) {
     // if it's a builder function, build it...
     let pathPrefix = null;
     let api = null;
@@ -127,7 +128,7 @@ function buildRoutes(app, apiOrBuilder) {
         if (_.isArray(value)) {
             _.forEach(value, (item) => buildRoute(app, api, key, item, pathPrefix));
         } else {
-            buildRoute(app, api, key, value, pathPrefix);
+            buildRoute(router, api, key, value, pathPrefix);
         }
     });
 }
@@ -140,13 +141,17 @@ function buildRoutes(app, apiOrBuilder) {
 //
 //}
 
-export default (app, config) => {
+export default (config) => {
     //if (config && config.watch) {
     //
     //}
+    
+    const router = express.Router();
 
     const apiOrApiArray = config.services;
     if (apiOrApiArray) {
-        _.forEach(_.isArray(apiOrApiArray) ? apiOrApiArray : [apiOrApiArray], api => buildRoutes(app, api));
+        _.forEach(_.isArray(apiOrApiArray) ? apiOrApiArray : [apiOrApiArray], api => buildRoutes(router, api));
     }
+    
+    return router;
 };
