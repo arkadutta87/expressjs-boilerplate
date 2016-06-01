@@ -75,7 +75,7 @@ export default function (app, config) {
     // APIs
     //
     if (config.api) {
-        app.use(config.client.multiInstance ? '/:instanceName' : '/', apiRequestHandler(config.api));
+        app.use(apiRequestHandler(config.api));
     }
 
     //
