@@ -1,7 +1,4 @@
-import _ from 'lodash';
-
 import {Command} from 'command-line-boilerplate/lib/CliBuilder';
-
 import server from './Server';
 
 export default function (config, name, description) {
