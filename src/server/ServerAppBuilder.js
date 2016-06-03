@@ -31,6 +31,8 @@ export default function (app, config) {
     ExpressWinston.requestWhitelist.push('params');
     ExpressWinston.requestWhitelist.push('cookies');
     ExpressWinston.requestWhitelist.push('body');
+    
+    ExpressWinston.responseWhitelist.push('_headers');
 
     app.use(ExpressWinston.logger({winstonInstance: logger, statusLevels: true}));
 

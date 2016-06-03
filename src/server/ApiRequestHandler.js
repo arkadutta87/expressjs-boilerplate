@@ -56,6 +56,14 @@ function wrap(req, res, api, apiObj) {
           if (result) {
               result.requestTime = req.body.requestTime;
               result.serviceTimeTaken = (performanceNow() - startTime).toFixed(3);
+
+              if (!_.isUndefined(result.queryTimeTaken)) {
+                  res.header('QUERY_TIME_TAKEN', result.queryTimeTaken);
+              }
+
+              if (!_.isUndefined(result.totalResults)) {
+                  res.header('TOTAL_RESULTS', result.totalResults);
+              }
           }
 
           return res.json(result);
