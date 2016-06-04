@@ -4,7 +4,6 @@ import Promise from 'bluebird';
 import URL from 'url';
 import QueryString from 'qs';
 import performanceNow from 'performance-now';
-
 import Winston from 'winston';
 
 const apiErrorsLogger = Winston.loggers.get('API_ERRORS');
@@ -44,6 +43,10 @@ function wrap(req, res, api, apiObj) {
 
     let promise = null;
     try {
+        const dataStr = JSON.stringify(data);
+
+        // set req length in header for logging
+        res.set('REQ_LENGTH', dataStr.length);
         promise = api.call(apiObj, req, data);
     } catch (error) {
         console.error('Error in handling request for data: ', JSON.stringify(data), req.originalUrl, error, error.stack);
@@ -64,6 +67,14 @@ function wrap(req, res, api, apiObj) {
               if (!_.isUndefined(result.totalResults)) {
                   res.header('TOTAL_RESULTS', result.totalResults);
               }
+
+              res.set('Content-Type', 'application/json; charset=utf-8');
+              const response = new Buffer(JSON.stringify(result), 'utf8');
+
+              // set response length in header for logging
+              res.header('RES_LENGTH', response.length);
+
+              return res.send(response);
           }
 
           return res.json(result);
@@ -80,7 +91,7 @@ function wrap(req, res, api, apiObj) {
 
           // log error stack here
           console.error('Error in handling request for data: ', JSON.stringify(data), req.originalUrl, error, error.stack);
-          
+
           apiErrorsLogger.error(error);
 
           return res.status(500).json(error);
@@ -153,13 +164,13 @@ export default (config) => {
     //if (config && config.watch) {
     //
     //}
-    
+
     const router = express.Router();
 
     const apiOrApiArray = config.services;
     if (apiOrApiArray) {
         _.forEach(_.isArray(apiOrApiArray) ? apiOrApiArray : [apiOrApiArray], api => buildRoutes(router, api));
     }
-    
+
     return router;
 };
