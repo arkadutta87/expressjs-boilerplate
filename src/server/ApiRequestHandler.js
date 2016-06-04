@@ -30,7 +30,7 @@ const ApiPathPrefix = 'api';
 //    console.log(table.toString());
 //});
 
-function wrap(req, res, api, apiObj) {
+function wrap(req, res, apiHandler, apiObj, instanceName) {
     const startTime = performanceNow();
 
     const query = URL.parse(req.originalUrl).query;
@@ -39,7 +39,7 @@ function wrap(req, res, api, apiObj) {
         queryObject = QueryString.parse(query, {allowDots: true});
     }
 
-    const data = _.extend({}, req.body, queryObject, req.params);
+    const data = _.extend({instanceName}, req.body, queryObject, req.params);
 
     let promise = null;
     try {
@@ -47,7 +47,7 @@ function wrap(req, res, api, apiObj) {
 
         // set req length in header for logging
         res.set('REQ_LENGTH', dataStr.length);
-        promise = api.call(apiObj, req, data);
+        promise = apiHandler.call(apiObj, req, data);
     } catch (error) {
         console.error('Error in handling request for data: ', JSON.stringify(data), req.originalUrl, error, error.stack);
         apiErrorsLogger.error(error);
@@ -98,7 +98,7 @@ function wrap(req, res, api, apiObj) {
       });
 }
 
-function buildRoute(router, api, key, value, pathPrefix) {
+function buildRoute(router, api, key, value, pathPrefix, instanceName) {
     let path = null;
 
     if (pathPrefix) {
@@ -110,7 +110,7 @@ function buildRoute(router, api, key, value, pathPrefix) {
     const method = _.lowerCase(value.method) || 'post';
 
     router[method](path, (req, res) => {
-        wrap(req, res, value.handler, api);
+        wrap(req, res, value.handler, api, instanceName);
     });
 
     // emit event here
@@ -122,10 +122,12 @@ function buildRoutes(router, apiOrBuilder) {
     let pathPrefix = null;
     let api = null;
     let registry = null;
+    let instanceName = null;
     if (_.isObject(apiOrBuilder)) {
         pathPrefix = apiOrBuilder.path;
         api = apiOrBuilder.api;
         registry = apiOrBuilder.registry;
+        instanceName = apiOrBuilder.instanceName;
     } else {
         api = apiOrBuilder;
     }
@@ -145,9 +147,9 @@ function buildRoutes(router, apiOrBuilder) {
 
     _.forEach(registry, (value, key) => {
         if (_.isArray(value)) {
-            _.forEach(value, (item) => buildRoute(router, api, key, item, pathPrefix));
+            _.forEach(value, (item) => buildRoute(router, api, key, item, pathPrefix, instanceName));
         } else {
-            buildRoute(router, api, key, value, pathPrefix);
+            buildRoute(router, api, key, value, pathPrefix, instanceName);
         }
     });
 }
