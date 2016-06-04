@@ -38,8 +38,10 @@ function wrap(req, res, apiHandler, apiObj, instanceName) {
     if (query && !_.isEmpty(query)) {
         queryObject = QueryString.parse(query, {allowDots: true});
     }
+    
+    req.params.__instanceName__ = instanceName;
 
-    const data = _.extend({instanceName}, req.body, queryObject, req.params);
+    const data = _.extend({}, req.body, queryObject, req.params);
 
     let promise = null;
     try {
