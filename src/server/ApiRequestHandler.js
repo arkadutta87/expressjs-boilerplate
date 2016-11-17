@@ -149,7 +149,7 @@ function buildRoutes(router, apiOrBuilder) {
 
     _.forEach(registry, (value, key) => {
         if (_.isArray(value)) {
-            _.forEach(value, (item) => buildRoute(router, api, key, item, pathPrefix, instanceName));
+            _.forEach(value, item => buildRoute(router, api, key, item, pathPrefix, instanceName));
         } else {
             buildRoute(router, api, key, value, pathPrefix, instanceName);
         }

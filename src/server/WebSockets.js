@@ -1,4 +1,4 @@
-import performanceNow from 'performance-now';
+// import performanceNow from 'performance-now';
 
 module.exports = function (io) {
     io

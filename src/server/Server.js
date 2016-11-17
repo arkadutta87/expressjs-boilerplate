@@ -2,7 +2,6 @@ import Http from 'http';
 import Cluster from 'cluster';
 import _ from 'lodash';
 import express from 'express';
-
 import buildServerApp from './ServerAppBuilder';
 
 //var SocketIO = require('socket.io');
@@ -31,7 +30,7 @@ function master() {
     const cpuCount = require('os').cpus().length;
 
     // Create a worker for each CPU
-    for (let i = 0; i < cpuCount; ++i) {
+    for (let i = 0; i < cpuCount; i += 1) {
         Cluster.fork();
     }
 }
@@ -70,7 +69,7 @@ function worker(config) {
     // TODO: make this configurable
     //var io = SocketIO(server);
 
-    server.listen(port, err => {
+    server.listen(port, (err) => {
         if (err) {
             // handle specific listen errors with friendly messages
             switch (err.code) {
@@ -100,11 +99,9 @@ function worker(config) {
 export default function (config) {
     if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging') {
         worker(config);
+    } else if (Cluster.isMaster) {
+        master();
     } else {
-        if (Cluster.isMaster) {
-            master();
-        } else {
-            worker(config);
-        }
+        worker(config);
     }
 }

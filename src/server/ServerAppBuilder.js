@@ -7,10 +7,9 @@ import bodyParser from 'body-parser';
 import ms from 'ms';
 import ExpressWinston from 'express-winston';
 import buildLogger from './Logger';
+import apiRequestHandler from './ApiRequestHandler';
 
 const NinetyDays = ms('90 days');
-
-import apiRequestHandler from './ApiRequestHandler';
 
 //
 // config
@@ -84,9 +83,8 @@ export default function (app, config) {
     // CLIENT APP
     //
     if (config.client) {
-        /* eslint-disable import/no-unresolved */
+        // eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
         const clientAppRequestHandler = require('reactjs-web-boilerplate/lib/server/ClientAppRequestHandler').default;
-        /* eslint-enable */
 
         app.use(config.client.multiInstance ? '/:instanceName' : '/', clientAppRequestHandler(config.client.routes, config.client.multiInstance, config.client.properties, config.api));
     }

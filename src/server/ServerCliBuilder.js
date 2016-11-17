@@ -5,7 +5,7 @@ export default function (config, name, description) {
     new Command(name || 'server')
       .description(description || 'Runs server')
       .option('-p, --port [PORT]', 'Sets server port')
-      .action(args => {
+      .action((args) => {
             if (args.port) {
                 process.env.PORT = args.port;
             } else if (config.port) {
