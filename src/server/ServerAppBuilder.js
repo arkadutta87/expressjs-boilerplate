@@ -72,6 +72,8 @@ export default function (app, config) {
     app.use(bodyParser.urlencoded({extended: false}));
     app.use(cookieParser());
 
+    // TODO : Here the code for passwordless needs to be put
+
     //
     // APIs
     //
