@@ -12,6 +12,7 @@ import MongoStore from 'passwordless-mongostore';
 import emailJs from 'emailjs';
 //import mongo from 'mongodb';
 import monk from 'monk';
+import ses from 'node-ses';
 
 import buildLogger from './Logger';
 import apiRequestHandler from './ApiRequestHandler';
@@ -34,6 +35,15 @@ export default function (app, config) {
     const yourEmail = 'arkadutta0504@gmail.com';
     const yourPwd = 'ise2009006shalmoli';
     const yourSmtp = 'smtp.gmail.com';
+
+    //node ses code
+    const sesKey = 'AKIAIMFUG6L7Y4XQ3B7Q';
+    const sesSecret = 'vk3DHdzb7pjgs+t1h/OVC7Btdp42CBrJPu7Rc7Uu';
+    const awsInstance = 'https://email.us-west-2.amazonaws.com';
+    const sesClient = ses.createClient({ key: sesKey, secret: sesSecret, amazon: awsInstance});
+
+    const sesFromMailID = 'noreply@360fy.io';
+
     const smtpServer = emailJs.server.connect({
         user: yourEmail,
         password: yourPwd,
@@ -58,15 +68,27 @@ export default function (app, config) {
     passwordless.init(new MongoStore(pathToMongoDb));
     passwordless.addDelivery(
         (tokenToSend, uidToSend, recipient, callback) => {
-            console.log(`$$$$$$$$$$$--------- Token Send : ${tokenToSend} , uidToSend : ${uidToSend}`);
+            console.log(`$$$$$$$$$$$--------- Token Send : ${tokenToSend} , uidToSend : ${uidToSend} , recipient : ${recipient}`);
             // Send out token
-            smtpServer.send({
+            /*smtpServer.send({
                 text: `Hello!
                 You can now access your account here: ${host}?token=${tokenToSend}&uid=${encodeURIComponent(uidToSend)}`,
                 from: yourEmail,
                 to: recipient,
                 subject: `Token for ${host}`
             }, (err, message) => {
+                if (err) {
+                    console.log(err);
+                }
+                callback(err);
+            });*/
+            sesClient.sendEmail({
+                to: recipient,
+                from: sesFromMailID,
+                subject: 'Login link for Humane-Cockpit Dashboard',
+                message: `Hello!
+                You can now access your account here: ${host}?token=${tokenToSend}&uid=${encodeURIComponent(uidToSend)}`
+            }, (err, data, res) => {
                 if (err) {
                     console.log(err);
                 }
