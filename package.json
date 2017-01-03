@@ -7,6 +7,7 @@
     "lint": "eslint ./src/",
     "clean": "rm -rf lib/",
     "compile": "npm run lint && npm run clean && mkdir -p lib/server && cp -R src/server/views/ lib/server/views && babel -d lib/ src/",
+    "postinstall": "npm run compile",
     "prepublish": "npm run compile"
   },
   "author": "Shailendra Sharma",
