@@ -1,0 +1,25 @@
+<h1>Cockpit - Login</h1>
+{{#if user}}
+    User: {{user}} (<a href='/logout'>logout</a>)
+{{else if tokenSent}}
+    <h5>Token have been sent . Please check you mail</h5>
+    <hr/>
+    <br/>
+    <ul>
+        <li>
+            <a href='/'>Back to homepage</a>
+        </li>
+    </ul>
+{{else}}
+    <p>
+    <form action="/sendtoken" method="POST">
+        <br> username/email : <input name="user" type="text">
+        <br> instance-name : <input name="instanceName" type="text">
+        <br><input type="submit" value="Login / Register">
+    </form>
+    </p>
+    {{#if loginFailed}}
+        <hr/>
+        <div>you dont have access . Contact admin or enter proper details</div>
+    {{/if}}
+{{/if}}
