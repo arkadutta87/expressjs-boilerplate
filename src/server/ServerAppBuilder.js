@@ -6,9 +6,11 @@ import compression from 'compression';
 import bodyParser from 'body-parser';
 import ms from 'ms';
 import ExpressWinston from 'express-winston';
+import sessionStore from 'connect-mongo';
 import expressSession from 'express-session';
 import passwordless from 'passwordless';
 import MongoStore from 'passwordless-mongostore';
+
 import emailJs from 'emailjs';
 //import mongo from 'mongodb';
 import monk from 'monk';
@@ -32,24 +34,14 @@ const NinetyDays = ms('90 days');
 export default function (app, config) {
     // TODO; enabled only when passwordless
     // TODO: email setup (has to be changed)
-    const yourEmail = 'arkadutta0504@gmail.com';
-    const yourPwd = 'ise2009006shalmoli';
-    const yourSmtp = 'smtp.gmail.com';
 
     //node ses code
     const sesKey = 'AKIAIMFUG6L7Y4XQ3B7Q';
     const sesSecret = 'vk3DHdzb7pjgs+t1h/OVC7Btdp42CBrJPu7Rc7Uu';
     const awsInstance = 'https://email.us-west-2.amazonaws.com';
-    const sesClient = ses.createClient({ key: sesKey, secret: sesSecret, amazon: awsInstance});
+    const sesClient = ses.createClient({key: sesKey, secret: sesSecret, amazon: awsInstance});
 
     const sesFromMailID = 'noreply@360fy.io';
-
-    const smtpServer = emailJs.server.connect({
-        user: yourEmail,
-        password: yourPwd,
-        host: yourSmtp,
-        ssl: true
-    });
 
     const mongoHost = 'localhost';
     const mongoPort = '27017';
@@ -61,27 +53,38 @@ export default function (app, config) {
 
     const db = monk(`${mongoHost}:${mongoPort}/${userDataBase}`);
 
+    //TODO: express-session mongo store
+    const MongoStoreSession = sessionStore(expressSession);
+
     // TODO: Path to be send via email -- to be configurable
     const host = 'http://localhost/';
 
     // Setup of Passwordless
-    passwordless.init(new MongoStore(pathToMongoDb));
+    passwordless.init(new MongoStore(pathToMongoDb, {
+        server: {
+            auto_reconnect: true
+        },
+        mongostore: {
+            collection: 'token'
+        }
+    }));
+
     passwordless.addDelivery(
         (tokenToSend, uidToSend, recipient, callback) => {
             console.log(`$$$$$$$$$$$--------- Token Send : ${tokenToSend} , uidToSend : ${uidToSend} , recipient : ${recipient}`);
             // Send out token
             /*smtpServer.send({
-                text: `Hello!
-                You can now access your account here: ${host}?token=${tokenToSend}&uid=${encodeURIComponent(uidToSend)}`,
-                from: yourEmail,
-                to: recipient,
-                subject: `Token for ${host}`
-            }, (err, message) => {
-                if (err) {
-                    console.log(err);
-                }
-                callback(err);
-            });*/
+             text: `Hello!
+             You can now access your account here: ${host}?token=${tokenToSend}&uid=${encodeURIComponent(uidToSend)}`,
+             from: yourEmail,
+             to: recipient,
+             subject: `Token for ${host}`
+             }, (err, message) => {
+             if (err) {
+             console.log(err);
+             }
+             callback(err);
+             });*/
             sesClient.sendEmail({
                 to: recipient,
                 from: sesFromMailID,
@@ -152,14 +155,29 @@ export default function (app, config) {
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: false}));
     app.use(cookieParser());
-    app.use(expressSession({secret: '#4ghvdjs^&9BBJJsd', saveUninitialized: false, resave: false}));
+    app.use(expressSession(
+        {
+            secret: '#4ghvdjs^&9BBJJsd',
+            saveUninitialized: false,
+            resave: false,
+            cookie: {maxAge: 365 * 24 * 60 * 60 * 1000},
+            store: new MongoStoreSession({
+                db: databaseMongo,
+                host: 'localhost',
+                port: 27017,
+                collection: 'session',
+                auto_reconnect: true,
+                url: `mongodb://localhost:27017/${databaseMongo}`
+            })
+        }
+    ));
 
     //adding mongo handle to req
     // Make our db accessible to our router
     /*app.use((req, res, next) => {
-        req.db = db;
-        next();
-    });*/
+     req.db = db;
+     next();
+     });*/
 
     // TODO; >>>>>> enabled only when passwordless
     //passwordless code
@@ -213,8 +231,6 @@ export default function (app, config) {
             res.render('login', {tokenSent: true});
         });
 
-    app.use(passwordless.restricted({failureRedirect: '/login'}));
-
     app.use((req, res, next) => {
         console.log('\n\n$$$$$$ ---- Inside The Code for Arka ----- $$$$$$$$ \n\n');
         if (req.user) {
@@ -231,6 +247,12 @@ export default function (app, config) {
             next();
         }
     });
+
+    app.all('/*', passwordless.restricted({failureRedirect: '/login'}), (req, res, next) => {
+        next();
+    });
+
+    //app.use();
 
     /* GET logout. */
     app.get('/logout', passwordless.logout(),
