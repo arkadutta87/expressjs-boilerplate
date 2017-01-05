@@ -57,7 +57,8 @@ export default function (app, config) {
     const MongoStoreSession = sessionStore(expressSession);
 
     // TODO: Path to be send via email -- to be configurable
-    const host = 'http://localhost/';
+    //const host = 'http://localhost/';
+    const host = 'https://cockpit.360fy.io/';
 
     // Setup of Passwordless
     passwordless.init(new MongoStore(pathToMongoDb, {
