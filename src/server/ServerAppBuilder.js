@@ -10,6 +10,7 @@ import sessionStore from 'connect-mongo';
 import expressSession from 'express-session';
 import passwordless from 'passwordless';
 import MongoStore from 'passwordless-mongostore';
+import flash from 'connect-flash';
 
 import emailJs from 'emailjs';
 //import mongo from 'mongodb';
@@ -172,6 +173,8 @@ export default function (app, config) {
             })
         }
     ));
+    //TDOD : Needs to be integrated only when
+    app.use(flash());
 
     //adding mongo handle to req
     // Make our db accessible to our router
@@ -186,12 +189,16 @@ export default function (app, config) {
     app.use(passwordless.acceptToken({successRedirect: '/'}));
 
     // const router = express.Router();
+    const stringFailedLogin = 'FAILED-LOGIN';
 
     /* GET login screen. */
     app.get('/login', (req, res) => {
+        //let error = null;
+        const error = req.flash('passwordless');
+        console.log(`\n\n$$$$$$----- flash messages : ${JSON.stringify(error)}\n\n`);
         if (req.user) {
             res.redirect('/');
-        } else if (req.loginFailed) {
+        } else if (error.length !== 0) {
             res.render('login', {loginFailed: true});
         } else {
             res.render('login', {user: req.user});
@@ -227,7 +234,7 @@ export default function (app, config) {
                     }
                 });
                 // usually you would want something like:
-            }, {failureRedirect: '/login'}),
+            }, {failureRedirect: '/login', failureFlash: stringFailedLogin}),
         (req, res) => {
             res.render('login', {tokenSent: true});
         });

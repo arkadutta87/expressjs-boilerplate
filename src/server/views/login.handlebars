@@ -1,25 +1,156 @@
-<h1>Cockpit - Login</h1>
-{{#if user}}
-    User: {{user}} (<a href='/logout'>logout</a>)
-{{else if tokenSent}}
-    <h5>Token have been sent . Please check you mail</h5>
-    <hr/>
-    <br/>
-    <ul>
-        <li>
-            <a href='/'>Back to homepage</a>
-        </li>
-    </ul>
+{{#if tokenSent}} 
+
+<div class="container" style="margin-top: 65px;
+    padding-top: 100px;">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="panel panel-login">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="text-center">
+                                <a href="#" class="forgot-password">Human Cockpit Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    <hr/>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="text-center">Token have been sent . Please check you mail</div>
+                            <hr/>
+                            <div class="text-center"><a href="/">Back To Home Page</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{else}}
-    <p>
-    <form action="/sendtoken" method="POST">
-        <br> username/email : <input name="user" type="text">
-        <br> instance-name : <input name="instanceName" type="text">
-        <br><input type="submit" value="Login / Register">
-    </form>
-    </p>
+
     {{#if loginFailed}}
-        <hr/>
-        <div>you dont have access . Contact admin or enter proper details</div>
+        <div class="container" style="padding-top: 100px;">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="panel panel-login">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="text-center">
+                                        <a href="#" class="forgot-password">Human Cockpit Dashboard</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <form id="login-form" action="/sendtoken" method="post" role="form"
+                                          style="display: block;">
+                                        <div class="form-group">
+                                            <input type="email" name="user" id="username" tabindex="1"
+                                                   class="form-control"
+                                                   placeholder="We want your username" value="">
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="instanceName" id="password" tabindex="2"
+                                                   class="form-control"
+                                                   placeholder="Go ahead type in your instance name">
+                                        </div>
+                                        <div class="form-group text-center" style="text-decoration: underline;
+    color: #3372b7;">Enter proper details or contact admin as you may be
+                                            non-registered
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-sm-6 col-sm-offset-3">
+                                                    <input type="submit" name="login-submit" id="login-submit"
+                                                           tabindex="3"
+                                                           class="form-control btn btn-login" value="Log In">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="text-center">
+                                                        <a href="https://360fy.io" tabindex="4" class="forgot-password">©2017
+                                                            All Rights Reserved. https://360fy.io.</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{else}}
+
+        <div class="container" style="padding-top: 100px;">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="panel panel-login">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="text-center">
+                                        <a href="#" class="forgot-password">Human Cockpit Dashboard</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <form id="login-form" action="/sendtoken" method="post" role="form"
+                                          style="display: block;">
+                                        <div class="form-group">
+                                            <input type="email" name="user" id="username" tabindex="1"
+                                                   class="form-control"
+                                                   placeholder="We want your username" value="">
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="text" name="instanceName" id="password" tabindex="2"
+                                                   class="form-control"
+                                                   placeholder="Go ahead type in your instance name">
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-sm-6 col-sm-offset-3">
+                                                    <input type="submit" name="login-submit" id="login-submit"
+                                                           tabindex="3"
+                                                           class="form-control btn btn-login" value="Log In">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="text-center">
+                                                        <a href="https://360fy.io" tabindex="4" class="forgot-password">©2017
+                                                            All Rights Reserved. https://360fy.io.</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     {{/if}}
 {{/if}}
+
