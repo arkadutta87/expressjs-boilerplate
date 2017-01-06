@@ -33,75 +33,81 @@ const NinetyDays = ms('90 days');
 //          services - service instances, that also implement registry methods
 //
 export default function (app, config) {
-    // TODO; enabled only when passwordless
-    // TODO: email setup (has to be changed)
-
     //node ses code
-    const sesKey = 'AKIAIMFUG6L7Y4XQ3B7Q';
-    const sesSecret = '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';
-    const awsInstance = 'https://email.us-west-2.amazonaws.com';
-    const sesClient = ses.createClient({key: sesKey, secret: sesSecret, amazon: awsInstance});
+    const loginContext = config.login_config;
+    let sesKey = null;
+    let sesSecret = null;
+    let awsInstance = null;
+    let sesClient = null;
+    let sesFromMailID = null;
+    let mailSubject = null;
 
-    const sesFromMailID = 'noreply@360fy.io';
+    let mongoHost = null;
+    let mongoPort = null;
+    let databaseMongo = null;
+    let userDataBase = null;
+    let pathToMongoDb = null;
+    let db = null;
+    let passwordlessSecret = null;
 
-    const mongoHost = 'localhost';
-    const mongoPort = '27017';
-    const databaseMongo = 'passwordless-simple-mail';
-    const userDataBase = 'humane-cockpit-login-db';
+    let MongoStoreSession = null;
+    let host = null;
 
-    // TODO: MongoDB setup (given default can be used)
-    const pathToMongoDb = `mongodb://${mongoHost}:${mongoPort}/${databaseMongo}`;
+    let successRedirectURL = null;
 
-    const db = monk(`${mongoHost}:${mongoPort}/${userDataBase}`);
+    if (loginContext) {
+        sesKey = loginContext.email_config.ses_key;
+        sesSecret = loginContext.email_config.ses_secret;
+        awsInstance = loginContext.email_config.ses_aws;
+        sesClient = ses.createClient({key: sesKey, secret: sesSecret, amazon: awsInstance});
+        sesFromMailID = loginContext.email_config.ses_mail_id;
+        host = loginContext.email_config.host_index_link;
+        mailSubject = loginContext.email_config.mail_subject;
 
-    //TODO: express-session mongo store
-    const MongoStoreSession = sessionStore(expressSession);
+        //mongo configs
+        mongoHost = loginContext.mongo_config.mongo_host;
+        mongoPort = loginContext.mongo_config.mongo_port;
+        databaseMongo = loginContext.mongo_config.passwordless_db;
+        userDataBase = loginContext.mongo_config.login_db;
 
-    // TODO: Path to be send via email -- to be configurable
-    //const host = 'http://localhost/';
-    const host = 'https://cockpit.360fy.io/';
 
-    // Setup of Passwordless
-    passwordless.init(new MongoStore(pathToMongoDb, {
-        server: {
-            auto_reconnect: true
-        },
-        mongostore: {
-            collection: 'token'
-        }
-    }));
+        pathToMongoDb = `mongodb://${mongoHost}:${mongoPort}/${databaseMongo}`;
+        db = monk(`${mongoHost}:${mongoPort}/${userDataBase}`);
 
-    passwordless.addDelivery(
-        (tokenToSend, uidToSend, recipient, callback) => {
-            console.log(`$$$$$$$$$$$--------- Token Send : ${tokenToSend} , uidToSend : ${uidToSend} , recipient : ${recipient}`);
-            // Send out token
-            /*smtpServer.send({
-             text: `Hello!
-             You can now access your account here: ${host}?token=${tokenToSend}&uid=${encodeURIComponent(uidToSend)}`,
-             from: yourEmail,
-             to: recipient,
-             subject: `Token for ${host}`
-             }, (err, message) => {
-             if (err) {
-             console.log(err);
-             }
-             callback(err);
-             });*/
-            sesClient.sendEmail({
-                to: recipient,
-                from: sesFromMailID,
-                subject: 'Login link for Humane-Cockpit Dashboard',
-                message: `Hello!
+        MongoStoreSession = sessionStore(expressSession);
+
+        //passwordless config
+        passwordlessSecret = loginContext.passwordless_config.session_secret;
+        successRedirectURL = loginContext.passwordless_config.success_redirect;
+
+        // Setup of Passwordless
+        passwordless.init(new MongoStore(pathToMongoDb, {
+            server: {
+                auto_reconnect: true
+            },
+            mongostore: {
+                collection: 'token'
+            }
+        }));
+
+        //delivery mechanism for passwordless
+        passwordless.addDelivery(
+            (tokenToSend, uidToSend, recipient, callback) => {
+                console.log(`$$$$$$$$$$$--------- Token Send : ${tokenToSend} , uidToSend : ${uidToSend} , recipient : ${recipient}`);
+                sesClient.sendEmail({
+                    to: recipient,
+                    from: sesFromMailID,
+                    subject: mailSubject,
+                    message: `Hello!
                 You can now access your account here: ${host}?token=${tokenToSend}&uid=${encodeURIComponent(uidToSend)}`
-            }, (err, data, res) => {
-                if (err) {
-                    console.log(err);
-                }
-                callback(err);
+                }, (err, data, res) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    callback(err);
+                });
             });
-        });
-
-
+    }
     const logger = buildLogger(config.logDirectory || process.cwd());
 
     app.use(compression());
@@ -157,119 +163,106 @@ export default function (app, config) {
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: false}));
     app.use(cookieParser());
-    app.use(expressSession(
-        {
-            secret: '#4ghvdjs^&9BBJJsd',
-            saveUninitialized: false,
-            resave: false,
-            cookie: {maxAge: 365 * 24 * 60 * 60 * 1000},
-            store: new MongoStoreSession({
-                db: databaseMongo,
-                host: 'localhost',
-                port: 27017,
-                collection: 'session',
-                auto_reconnect: true,
-                url: `mongodb://localhost:27017/${databaseMongo}`
-            })
-        }
-    ));
-    //TDOD : Needs to be integrated only when
-    app.use(flash());
 
-    //adding mongo handle to req
-    // Make our db accessible to our router
-    /*app.use((req, res, next) => {
-     req.db = db;
-     next();
-     });*/
+    if (loginContext) {
+        app.use(expressSession(
+            {
+                secret: passwordlessSecret,
+                saveUninitialized: false,
+                resave: false,
+                cookie: {maxAge: 365 * 24 * 60 * 60 * 1000},
+                store: new MongoStoreSession({
+                    db: databaseMongo,
+                    host: mongoHost,
+                    port: mongoPort,
+                    collection: 'session',
+                    auto_reconnect: true,
+                    url: `mongodb://${mongoHost}:${mongoPort}/${databaseMongo}`
+                })
+            }
+        ));
 
-    // TODO; >>>>>> enabled only when passwordless
-    //passwordless code
-    app.use(passwordless.sessionSupport());
-    app.use(passwordless.acceptToken({successRedirect: '/'}));
+        app.use(flash());
+        app.use(passwordless.sessionSupport());
+        app.use(passwordless.acceptToken({successRedirect: successRedirectURL}));//'/'
 
-    // const router = express.Router();
-    const stringFailedLogin = 'FAILED-LOGIN';
+        const stringFailedLogin = 'FAILED-LOGIN';
 
-    /* GET login screen. */
-    app.get('/login', (req, res) => {
-        //let error = null;
-        const error = req.flash('passwordless');
-        console.log(`\n\n$$$$$$----- flash messages : ${JSON.stringify(error)}\n\n`);
-        if (req.user) {
-            res.redirect('/');
-        } else if (error.length !== 0) {
-            res.render('login', {loginFailed: true});
-        } else {
-            res.render('login', {user: req.user});
-        }
-    });
-
-    /* POST login screen. */
-    app.post('/sendtoken',
-        passwordless.requestToken(
-            // Simply accept every user
-            (user, delivery, callback, req) => {
-                console.log(`User Object : ${JSON.stringify(user)}`);
-                console.log(`request object : ${JSON.stringify(req.body)}`);
-
-                //const dbInst = req.db;
-                const userName = req.body.user;
-                const instanceName = req.body.instanceName;
-
-                // Fetch from 'users' collection
-                const loginCollection = db.get('login');
-                loginCollection.findOne({username: userName, instanceName, isEnabled: true}, (e, doc) => {
-                    if (e) {
-                        console.log(e);
-                        req.loginStatus = false;
-                        callback(null, null);
-                    } else if (doc) {
-                        console.log(JSON.stringify(doc));
-                        //req.name = doc.name;
-                        callback(null, doc._id);
-                    } else {
-                        req.loginFailed = true;
-                        callback(null, null);
-                    }
-                });
-                // usually you would want something like:
-            }, {failureRedirect: '/login', failureFlash: stringFailedLogin}),
-        (req, res) => {
-            res.render('login', {tokenSent: true});
+        /* GET login screen. */
+        app.get('/login', (req, res) => {
+            //let error = null;
+            const error = req.flash('passwordless');
+            console.log(`\n\n$$$$$$----- flash messages : ${JSON.stringify(error)}\n\n`);
+            if (req.user) {
+                res.redirect('/');
+            } else if (error.length !== 0) {
+                res.render('login', {loginFailed: true});
+            } else {
+                res.render('login', {user: req.user});
+            }
         });
 
-    app.use((req, res, next) => {
-        console.log('\n\n$$$$$$ ---- Inside The Code for Arka ----- $$$$$$$$ \n\n');
-        if (req.user) {
-            console.log('$$$$$ ---- Inside the code to set __userContext__ ');
 
-            //const dbInst = req.db;
-            const loginCollection = db.get('login');
-            loginCollection.findById(req.user, (error, user) => {
-                console.log(`User returned from ID --- : ${JSON.stringify(user)}`);
-                req.__userContext__ = user;
-                next();
+        /* POST login screen. */
+        app.post('/sendtoken',
+            passwordless.requestToken(
+                // Simply accept every user
+                (user, delivery, callback, req) => {
+                    console.log(`User Object : ${JSON.stringify(user)}`);
+                    console.log(`request object : ${JSON.stringify(req.body)}`);
+
+                    //const dbInst = req.db;
+                    const userName = req.body.user;
+                    const instanceName = req.body.instanceName;
+
+                    // Fetch from 'users' collection
+                    const loginCollection = db.get('login');
+                    loginCollection.findOne({username: userName, instanceName, isEnabled: true}, (e, doc) => {
+                        if (e) {
+                            console.log(e);
+                            req.loginStatus = false;
+                            callback(null, null);
+                        } else if (doc) {
+                            console.log(JSON.stringify(doc));
+                            //req.name = doc.name;
+                            callback(null, doc._id);
+                        } else {
+                            req.loginFailed = true;
+                            callback(null, null);
+                        }
+                    });
+                }, {failureRedirect: '/login', failureFlash: stringFailedLogin}),
+            (req, res) => {
+                res.render('login', {tokenSent: true});
             });
-        } else {
-            next();
-        }
-    });
 
-    app.all('/*', passwordless.restricted({failureRedirect: '/login'}), (req, res, next) => {
-        next();
-    });
 
-    //app.use();
-
-    /* GET logout. */
-    app.get('/logout', passwordless.logout(),
-        (req, res) => {
-            res.redirect('/login');
+        app.use((req, res, next) => {
+            console.log('\n\n$$$$$$ ---- Inside The Code for Arka ----- $$$$$$$$ \n\n');
+            if (req.user) {
+                console.log('$$$$$ ---- Inside the code to set __userContext__ ');
+                const loginCollection = db.get('login');
+                loginCollection.findById(req.user, (error, user) => {
+                    console.log(`User returned from ID --- : ${JSON.stringify(user)}`);
+                    req.__userContext__ = user;
+                    next();
+                });
+            } else {
+                next();
+            }
         });
 
-    // TODO; <<<<< enabled only when passwordless
 
+        app.all('/*', passwordless.restricted({failureRedirect: '/login'}), (req, res, next) => {
+            next();
+        });
+
+
+        app.get('/logout', passwordless.logout(),
+            (req, res) => {
+                res.redirect('/login');
+            });
+    }
     //
     // APIs
     //
